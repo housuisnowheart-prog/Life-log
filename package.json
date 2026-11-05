@@ -1,0 +1,15 @@
+{
+  "name": "life-log",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tests/service-worker.cjs && node tests/browser.cjs",
+    "check": "node --check app.js && node --check sw.js",
+    "format": "prettier --write app.js index.html style.css sw.js tests/browser.cjs"
+  },
+  "devDependencies": {
+    "axe-core": "4.11.0",
+    "playwright": "1.62.1",
+    "prettier": "3.6.2"
+  }
+}

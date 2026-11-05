@@ -1,1 +1,141 @@
-<!doctype html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff"><meta name="description" content="端末内に記録する生活管理アプリ"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><title>生活ログ</title></head><body><a class="skip" href="#main">本文へ移動</a><header><div class="header"><div><small>わたしの生活管理</small><h1>生活ログ</h1></div><span class="local">● 端末内保存</span></div></header><main id="main"><section id="home" class="page active"><div class="intro"><h2>今日の記録</h2><p id="today"></p><p class="muted">記録できるときに、記録できるものだけ。</p></div><div class="quick" id="quick"></div><section class="panel"><div class="sectionhead"><h3>最近の記録</h3><button class="link" data-tab="history">すべて見る</button></div><div id="recent"></div></section></section><section id="history" class="page"><h2>履歴</h2><div class="panel"><label for="filter">種類で絞り込む</label><select id="filter"><option value="">すべて</option></select><div id="records"></div></div></section><section id="schedule" class="page"><h2>予定</h2><p class="muted">時刻が決まっていなくても登録できます。</p><button class="primary" id="addSchedule">＋ 予定を追加</button><div class="panel" id="schedules"></div></section><section id="stats" class="page"><h2>ふりかえり</h2><p class="muted">記録から計算した参考値です。未記録は「なし」ではありません。</p><div id="statistics" class="panel"></div></section><section id="settings" class="page"><h2>設定とバックアップ</h2><div class="panel"><h3>データを守る</h3><p>データはこのブラウザ内に保存されます。ブラウザデータの削除や端末故障で失われる場合があります。</p><button id="export" class="primary">JSONバックアップを保存</button><label class="filelabel" for="import">JSONバックアップから復元</label><input id="import" type="file" accept="application/json,.json"><p class="muted">復元すると現在の記録にバックアップの記録を統合します。同じIDの記録はバックアップ側で上書きします。</p></div><div class="panel"><h3>保存領域</h3><button id="persist">永続保存を要求する</button><p id="persistStatus" class="muted"></p></div><div class="panel"><h3>プライバシー</h3><p>ログイン不要・外部送信なし。端末を共有する場合、他の利用者がブラウザ内の記録を閲覧できる可能性があります。バックアップファイルは暗号化されていません。</p></div></section></main><nav aria-label="メインナビゲーション" id="nav"><button data-tab="home" class="selected"><span>⌂</span>ホーム</button><button data-tab="history"><span>▤</span>履歴</button><button data-tab="schedule"><span>▦</span>予定</button><button data-tab="stats"><span>▥</span>分析</button><button data-tab="settings"><span>⚙</span>設定</button></nav><dialog id="editor"><form id="recordForm"><div class="dialoghead"><h2 id="formTitle">記録する</h2><button type="button" id="close" aria-label="閉じる">×</button></div><div id="fields"></div><div class="actions"><button type="button" id="delete" class="danger" hidden>削除</button><button type="submit" class="primary">保存する</button></div></form></dialog><div id="toast" role="status" aria-live="polite"></div><script src="app.js" defer></script></body></html>
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <meta name="description" content="端末内に記録する生活管理アプリ" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="style.css" />
+    <title>生活ログ</title>
+  </head>
+  <body data-theme="dads">
+    <a class="skip" href="#main">本文へ移動</a>
+    <header>
+      <div class="header">
+        <div>
+          <small>わたしの生活管理</small>
+          <h1>生活ログ</h1>
+        </div>
+        <span class="local">● 端末内保存</span>
+      </div>
+    </header>
+    <main id="main" tabindex="-1">
+      <section id="home" class="page active">
+        <div class="intro">
+          <h2>今日の記録</h2>
+          <p id="today"></p>
+          <p class="muted">記録できるときに、記録できるものだけ。</p>
+        </div>
+        <div class="diary-compose">
+          <p class="eyebrow">MY DAILY LOG</p>
+          <h3>今日のひとこまを残そう。</h3>
+          <p>気持ちも、体調も。自分のペースで。</p>
+          <button class="primary" data-add="note">＋ 日記を書く</button>
+        </div>
+        <details class="record-tools" open>
+          <summary>からだと暮らしを記録</summary>
+          <div class="quick" id="quick"></div>
+        </details>
+        <section class="panel">
+          <div class="sectionhead">
+            <h3>最近の記録 <span class="diary-label">/ タイムライン</span></h3>
+            <button class="link" data-tab="history">すべて見る</button>
+          </div>
+          <div id="recent"></div>
+        </section>
+      </section>
+      <section id="history" class="page">
+        <h2>履歴・タイムライン</h2>
+        <div class="panel">
+          <label for="filter">種類で絞り込む</label
+          ><select id="filter">
+            <option value="">すべて</option>
+          </select>
+          <div id="records"></div>
+        </div>
+      </section>
+      <section id="schedule" class="page">
+        <h2>予定</h2>
+        <p class="muted">時刻が決まっていなくても登録できます。</p>
+        <button class="primary" id="addSchedule">＋ 予定を追加</button>
+        <div class="panel" id="schedules"></div>
+      </section>
+      <section id="stats" class="page">
+        <h2>ふりかえり</h2>
+        <p class="muted">
+          記録から計算した参考値です。未記録は「なし」ではありません。
+        </p>
+        <div id="statistics" class="panel"></div>
+      </section>
+      <section id="settings" class="page">
+        <h2>設定とバックアップ</h2>
+        <div class="panel">
+          <h3>表示テーマ</h3>
+          <label for="theme">画面の雰囲気を選ぶ</label
+          ><select id="theme">
+            <option value="dads">スタンダード（従来のDADS風）</option>
+            <option value="diary">日記・タイムライン</option>
+          </select>
+          <p class="muted">
+            記録はそのまま、表示だけを切り替えます。この端末に設定を保存します。
+          </p>
+        </div>
+        <div class="panel">
+          <h3>データを守る</h3>
+          <p>
+            データはこのブラウザ内に保存されます。ブラウザデータの削除や端末故障で失われる場合があります。
+          </p>
+          <button id="export" class="primary">JSONバックアップを保存</button
+          ><label class="filelabel" for="import">JSONバックアップから復元</label
+          ><input id="import" type="file" accept="application/json,.json" />
+          <p class="muted">
+            復元すると現在の記録にバックアップの記録を統合します。同じIDの記録はバックアップ側で上書きします。
+          </p>
+        </div>
+        <div class="panel">
+          <h3>保存領域</h3>
+          <button id="persist">永続保存を要求する</button>
+          <p id="persistStatus" class="muted"></p>
+        </div>
+        <div class="panel">
+          <h3>プライバシー</h3>
+          <p>
+            ログイン不要・外部送信なし。端末を共有する場合、他の利用者がブラウザ内の記録を閲覧できる可能性があります。バックアップファイルは暗号化されていません。
+          </p>
+        </div>
+      </section>
+    </main>
+    <nav aria-label="メインナビゲーション" id="nav">
+      <button data-tab="home" class="selected" aria-current="page">
+        <span>⌂</span>ホーム</button
+      ><button data-tab="history"><span>▤</span>履歴</button
+      ><button data-tab="schedule"><span>▦</span>予定</button
+      ><button data-tab="stats"><span>▥</span>分析</button
+      ><button data-tab="settings"><span>⚙</span>設定</button>
+    </nav>
+    <dialog id="editor" aria-labelledby="formTitle">
+      <form id="recordForm">
+        <div class="dialoghead">
+          <h2 id="formTitle">記録する</h2>
+          <button type="button" id="close" aria-label="閉じる">×</button>
+        </div>
+        <div id="fields"></div>
+        <p id="formError" role="alert"></p>
+        <div class="actions">
+          <button type="button" id="delete" class="danger" hidden>削除</button
+          ><button type="submit" class="primary">保存する</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js" defer></script>
+  </body>
+</html>

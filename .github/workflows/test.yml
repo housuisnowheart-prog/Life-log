@@ -1,0 +1,29 @@
+name: Browser regression
+on:
+  pull_request:
+  push:
+    branches: [main, feat/diary-timeline-theme]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+      - name: Browser, data compatibility and accessibility
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 &
+          trap 'kill $!' EXIT
+          for attempt in $(seq 1 20); do
+            curl -fsS http://127.0.0.1:8000/ >/dev/null && break
+            sleep 1
+          done
+          CHROMIUM_PATH="$(node -e "process.stdout.write(require('playwright').chromium.executablePath())")" npm test
