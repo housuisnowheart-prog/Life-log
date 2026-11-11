@@ -150,6 +150,12 @@ const MedicationUI = (() => {
     if (savingPreset) return;
     const d = Object.fromEntries(new FormData(event.target));
     d.name = d.name.trim();
+    try {
+      d.doseMg = PK.normalizeDoseInput(d.doseMg);
+    } catch (error) {
+      q("#medicationError").textContent = error.message;
+      return;
+    }
     const error = PK.validateProfile(d);
     if (error) {
       q("#medicationError").textContent = error;
@@ -212,7 +218,7 @@ const MedicationUI = (() => {
     dose.id = "recordDoseField";
     dose.hidden = true;
     dose.innerHTML =
-      '<label for="recordDoseMg">今回の服用量（mg・必須）</label><input id="recordDoseMg" type="number" min="0.001" max="100000" step="any" inputmode="decimal">';
+      '<label for="recordDoseMg">今回の服用量（mg・必須）</label><input id="recordDoseMg" type="text" inputmode="decimal" maxlength="32" autocomplete="off" spellcheck="false" aria-describedby="recordDoseHint"><p id="recordDoseHint" class="hint">小数も入力できます（例：0.25）。全角数字・全角小数点にも対応しています。</p>';
     q("#f_dose").closest(".field").after(dose);
     q("#recordMedication").onchange = applyRecordProfile;
     if (recordSnapshot) q("#recordMedication").value = "@record";
@@ -227,7 +233,7 @@ const MedicationUI = (() => {
         delete result[key];
       return result;
     }
-    const doseMg = q("#recordDoseMg").value;
+    const doseMg = PK.normalizeDoseInput(q("#recordDoseMg").value);
     const error = PK.validateProfile({ ...p, doseMg });
     if (error) throw Error(error);
     for (const key of profileKeys) result[key] = p[key] ?? "";
