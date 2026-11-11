@@ -69,44 +69,7 @@
         <div class="panel" id="schedules"></div>
       </section>
       <section id="stats" class="page">
-        <h2>ふりかえり</h2>
-        <p class="muted">
-          記録から計算した参考値です。未記録は「なし」ではありません。
-        </p>
-        <div id="statistics" class="panel"></div>
-      </section>
-
-      <section id="medications" class="page">
-        <div class="sectionhead med-heading">
-          <div>
-            <p class="eyebrow">MY MEDICINE NOTE</p>
-            <h2>お薬ノート</h2>
-          </div>
-          <button class="primary" id="addMedication">＋ 薬を登録</button>
-        </div>
-        <p class="muted">
-          いつもの薬を、記録しやすく。推移は参考モデルとして振り返れます。
-        </p>
-        <div id="medicationStorageError" role="alert"></div>
-        <div id="medicationList" class="medication-list"></div>
-        <details class="panel med-backup">
-          <summary>登録薬のバックアップ</summary>
-          <p>
-            生活記録のバックアップとは別のファイルです。移行時は両方を保存してください。
-          </p>
-          <button id="exportMedications">登録薬をJSONで保存</button>
-          <div class="field">
-            <label for="importMedications">登録薬JSONから復元</label
-            ><input
-              id="importMedications"
-              type="file"
-              accept="application/json,.json"
-            />
-          </div>
-          <p class="hint">
-            同じIDは上書きして統合します。過去の服薬記録・記録時の計算条件は変更しません。
-          </p>
-        </details>
+        <h2>分析</h2>
         <section class="panel model-panel" aria-labelledby="modelTitle">
           <div class="sectionhead">
             <div>
@@ -115,16 +78,53 @@
             </div>
             <span class="model-badge">参考モデル</span>
           </div>
-          <p class="model-caution">
-            実測値ではありません。効果・安全性や、服用量・服用間隔・運転・飲酒の可否を判断するためには使えません。
-          </p>
+          <div id="curveResult" hidden>
+            <div id="curveChart" class="curve-chart"></div>
+            <ul
+              id="curveLegend"
+              class="curve-legend"
+              aria-label="グラフの凡例"
+            ></ul>
+            <p id="curveAxisNote" class="hint"></p>
+            <div class="field curve-inspector">
+              <label for="curveCursor">グラフ上の時刻を確認</label
+              ><input
+                id="curveCursor"
+                type="range"
+                min="0"
+                max="336"
+                value="0"
+              /><output id="curveReadout" for="curveCursor"></output>
+            </div>
+            <details>
+              <summary>計算条件・数値の一覧（3時間ごと）</summary>
+              <p id="curveDescription" class="curve-description"></p>
+              <p id="curveSummary" role="status"></p>
+              <p id="curveCoverage" class="hint"></p>
+              <div
+                class="table-scroll"
+                tabindex="0"
+                role="region"
+                aria-label="推移の数値一覧"
+              >
+                <table id="curveTable"></table>
+              </div>
+            </details>
+          </div>
           <form id="curveForm">
             <div class="field">
-              <label for="curveMedication">登録薬</label
+              <label for="curveMedication">最初に表示する薬</label
               ><select id="curveMedication">
                 <option value="">薬を登録してください</option>
               </select>
             </div>
+            <fieldset class="curve-overlays">
+              <legend>重ねて表示する薬（合計6種類まで）</legend>
+              <div id="curveOverlays"></div>
+              <p class="hint">
+                同じ日時・体重・目盛りで表示します。薬同士の値は合算しません。線の高さから薬の強さ・効果・安全性は比較できません。
+              </p>
+            </fieldset>
             <div class="med-grid">
               <div class="field">
                 <label for="curveMode">計算に使うもの</label
@@ -170,33 +170,10 @@
             <button class="primary" type="submit">グラフを更新</button>
           </form>
           <p id="curveError" role="alert"></p>
-          <div id="curveResult" hidden>
-            <p id="curveDescription" class="curve-description"></p>
-            <div id="curveChart" class="curve-chart"></div>
-            <p id="curveSummary" role="status"></p>
-            <div class="field curve-inspector">
-              <label for="curveCursor">グラフ上の時刻を確認</label
-              ><input
-                id="curveCursor"
-                type="range"
-                min="0"
-                max="336"
-                value="0"
-              /><output id="curveReadout" for="curveCursor"></output>
-            </div>
-            <p id="curveCoverage" class="hint"></p>
-            <details>
-              <summary>数値の一覧（3時間ごと）</summary>
-              <div
-                class="table-scroll"
-                tabindex="0"
-                role="region"
-                aria-label="推移の数値一覧"
-              >
-                <table id="curveTable"></table>
-              </div>
-            </details>
-          </div>
+          <div id="curveWarnings" role="status"></div>
+          <p class="model-caution">
+            実測値ではありません。効果・安全性や、服用量・服用間隔・運転・飲酒の可否を判断するためには使えません。
+          </p>
           <details class="model-details">
             <summary>計算の前提と、分かること・分からないこと</summary>
             <p>
@@ -209,10 +186,49 @@
               同じ登録薬の服薬だけを重ね合わせます。記録時の数値を使い、未記録の服薬は推測しません。日時不明・未来・計算条件が不足した記録は除外し、推定日時の記録はその時刻として扱います。古い自由入力の記録は、編集画面で登録薬を選択すると連携できます。
             </p>
             <p>
-              食事、剤形の違い、徐放・遅延吸収、代謝物、相互作用、腎・肝機能、年齢、個人差は反映しません。異なる薬の値は合算・比較せず、有効域・危険域・次の服薬時刻の判定も行いません。
+              食事、剤形の違い、徐放・遅延吸収、代謝物、相互作用、腎・肝機能、年齢、個人差は反映しません。異なる薬の線は同じ座標に表示できますが、値は合算せず、薬の強さ・効果・安全性を比較できません。有効域・危険域・次の服薬時刻の判定も行いません。
             </p>
           </details>
         </section>
+        <div id="statistics" class="panel"></div>
+      </section>
+
+      <section id="medications" class="page">
+        <div class="sectionhead med-heading">
+          <div>
+            <p class="eyebrow">MY MEDICINE NOTE</p>
+            <h2>お薬ノート</h2>
+          </div>
+          <button class="primary" id="addMedication">＋ 薬を登録</button>
+        </div>
+        <p class="muted">
+          いつもの薬を、記録しやすく。推移は参考モデルとして振り返れます。
+        </p>
+        <div id="medicationStorageError" role="alert"></div>
+        <div id="medicationList" class="medication-list"></div>
+        <details class="panel med-backup">
+          <summary>登録薬のバックアップ</summary>
+          <p>
+            生活記録のバックアップとは別のファイルです。移行時は両方を保存してください。
+          </p>
+          <button id="exportMedications">登録薬をJSONで保存</button>
+          <div class="field">
+            <label for="importMedications">登録薬JSONから復元</label
+            ><input
+              id="importMedications"
+              type="file"
+              accept="application/json,.json"
+            />
+          </div>
+          <p class="hint">
+            同じIDは上書きして統合します。過去の服薬記録・記録時の計算条件は変更しません。
+          </p>
+        </details>
+        <p>
+          <button data-tab="stats" class="link">
+            分析でお薬の推移を見る →
+          </button>
+        </p>
       </section>
       <section id="settings" class="page">
         <h2>設定とバックアップ</h2>

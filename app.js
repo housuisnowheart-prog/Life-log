@@ -540,7 +540,12 @@ async function init() {
       : "このブラウザは非対応です";
   };
   await load();
-  await MedicationUI.init({ getRecords: () => items, editor, notify: toast });
+  await MedicationUI.init({
+    getRecords: () => items,
+    editor,
+    tab,
+    notify: toast,
+  });
   if ("serviceWorker" in navigator && location.protocol !== "file:")
     navigator.serviceWorker.register("./sw.js").catch(() => {});
 }

@@ -154,15 +154,17 @@
     }
     return { doses, skipped };
   }
-  function series(doses, start, hours, weightKg) {
+  function series(doses, start, hours, weightKg, absoluteOverride = null) {
     if (![24, 72, 168].includes(hours) || !Number.isFinite(start))
       throw Error("Invalid range");
     if (doses.length > 5000) throw Error("Too many doses");
     const end = start + hours * HOUR;
-    const absolute = doses.every(
-      (d) =>
-        number(d.bioavailability, 0.0001, 1) && number(d.vdLKg, 0.001, 10000),
-    );
+    const absolute =
+      absoluteOverride ??
+      doses.every(
+        (d) =>
+          number(d.bioavailability, 0.0001, 1) && number(d.vdLKg, 0.001, 10000),
+      );
     // Include exact dose times and single-dose peak times to retain short peaks.
     const times = new Set(
       Array.from({ length: 337 }, (_, i) => start + ((end - start) * i) / 336),
@@ -178,6 +180,24 @@
       }));
     return { points, absolute, unit: absolute ? "mg/L" : "mg/kg", start, end };
   }
+  function groupSeries(groups, start, hours, weightKg) {
+    if (
+      !groups.length ||
+      groups.length > 6 ||
+      groups.some((g) => !g.doses.length)
+    )
+      throw Error("Select one to six nonempty series");
+    const absolute = groups.every((g) =>
+      g.doses.every(
+        (d) =>
+          number(d.bioavailability, 0.0001, 1) && number(d.vdLKg, 0.001, 10000),
+      ),
+    );
+    return groups.map((g) => ({
+      ...g,
+      ...series(g.doses, start, hours, weightKg, absolute),
+    }));
+  }
   const API = {
     HOUR,
     number,
@@ -190,6 +210,7 @@
     valueAt,
     recordedDoses,
     series,
+    groupSeries,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.PK = API;
