@@ -146,3 +146,37 @@ for (const input of [
   "0.0001",
 ])
   assert.throws(() => pk.normalizeDoseInput(input));
+
+const overlaid = pk.groupSeries(
+  [
+    { id: "a", doses: [absolute] },
+    { id: "b", doses: [d] },
+  ],
+  0,
+  24,
+  50,
+);
+assert.equal(overlaid.length, 2);
+assert(overlaid.every((line) => line.unit === "mg/kg"));
+close(overlaid[0].points.find((p) => p.time === 8 * pk.HOUR).value, 1);
+close(overlaid[1].points.find((p) => p.time === 8 * pk.HOUR).value, 1);
+const concentrationLines = pk.groupSeries(
+  [
+    { id: "a", doses: [absolute] },
+    { id: "b", doses: [absolute, absolute] },
+  ],
+  0,
+  24,
+  50,
+);
+assert(concentrationLines.every((line) => line.unit === "mg/L"));
+close(
+  concentrationLines[0].points.find((p) => p.time === 8 * pk.HOUR).value,
+  0.4,
+);
+close(
+  concentrationLines[1].points.find((p) => p.time === 8 * pk.HOUR).value,
+  0.8,
+);
+assert.throws(() => pk.groupSeries([], 0, 24, 50));
+assert.throws(() => pk.groupSeries(Array(7).fill({ doses: [d] }), 0, 24, 50));

@@ -863,3 +863,86 @@ input[readonly] {
   color: #4f3a00;
   border-radius: 6px;
 }
+.curve-overlays {
+  border: 1px solid #879789;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 12px 0;
+}
+.curve-overlays legend {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0 6px;
+}
+.overlay-option {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.overlay-option input {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  accent-color: #005bac;
+}
+.overlay-option span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.curve-legend {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  font-size: 0.875rem;
+}
+.curve-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.curve-legend svg {
+  flex-shrink: 0;
+}
+.chart-line.series-0 {
+  stroke: #005bac;
+}
+.chart-line.series-1 {
+  stroke: #ad3325;
+}
+.chart-line.series-2 {
+  stroke: #7042a0;
+}
+.chart-line.series-3 {
+  stroke: #006b68;
+}
+.chart-line.series-4 {
+  stroke: #805900;
+}
+.chart-line.series-5 {
+  stroke: #374151;
+}
+#curveWarnings {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+  color: #774200;
+}
+#curveSummary,
+#curveCoverage,
+#curveReadout {
+  white-space: pre-line;
+}
+#curveTable {
+  min-width: max-content;
+}
+#curveTable th {
+  max-width: 240px;
+  overflow-wrap: anywhere;
+}

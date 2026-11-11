@@ -1,5 +1,5 @@
 "use strict";
-const CACHE = "life-log-v4";
+const CACHE = "life-log-v5";
 const ASSETS = [
   "./",
   "./index.html",

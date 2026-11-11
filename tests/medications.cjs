@@ -103,6 +103,7 @@ const fs = require("node:fs");
   await page.click('#nav [data-tab="medications"]');
   assert.equal(await page.inputValue("#curveWeight"), "50");
   await a11y();
+  await page.click('#nav [data-tab="medications"]');
   await page.click("#addMedication");
   await a11y();
   for (const [key, value] of Object.entries({
@@ -119,8 +120,10 @@ const fs = require("node:fs");
     () => !document.querySelector("#medicationEditor").open,
   );
   assert.equal((await readPresets()).length, 1);
+  await page.click('#nav [data-tab="stats"]');
   await page.selectOption("#curveMode", "single");
   assert.match(await page.textContent("#curveError"), /モデル/);
+  await page.click('#nav [data-tab="medications"]');
   await page.click("[data-med-edit]");
   await page.fill("#m_tmaxHours", "2");
   await page.click('#medicationForm [type="submit"]');
@@ -133,6 +136,7 @@ const fs = require("node:fs");
     await readRecords(),
     legacy.sort((a, b) => a.id.localeCompare(b.id)),
   );
+  await page.click('#nav [data-tab="stats"]');
   await page.selectOption("#curveMode", "single");
   assert(await page.locator("#curveResult").isVisible());
   assert.match(
@@ -149,6 +153,7 @@ const fs = require("node:fs");
   const firstPeak = await page.locator("#curveSummary").textContent();
   await page.fill("#curveWeight", "100");
   assert(!(await page.locator("#curveResult").isVisible()));
+  await page.click('#nav [data-tab="stats"]');
   await page.click('#curveForm [type="submit"]');
   assert.notEqual(await page.locator("#curveSummary").textContent(), firstPeak);
   assert.deepEqual(
@@ -156,8 +161,10 @@ const fs = require("node:fs");
     legacy.sort((a, b) => a.id.localeCompare(b.id)),
   );
   await page.fill("#curveWeight", "50");
+  await page.click('#nav [data-tab="stats"]');
   await page.click('#curveForm [type="submit"]');
   // Log a real (synthetic) intake from the card, with its own dose.
+  await page.click('#nav [data-tab="medications"]');
   await page.click("[data-med-record]");
   assert.equal(await page.inputValue("#f_name"), preset.name);
   assert.equal(await page.inputValue("#recordDoseMg"), "100");
@@ -172,10 +179,12 @@ const fs = require("node:fs");
   assert.equal(logged.data.dose, "50mg");
   assert.equal(logged.data.doseMg, "50");
   assert.equal(logged.data.tmaxHours, "2");
+  await page.click('#nav [data-tab="stats"]');
   await page.selectOption("#curveMode", "records");
   assert(await page.locator("#curveResult").isVisible());
   assert.match(await page.textContent("#curveCoverage"), /1回分/);
   // Preset edits do not retroactively change logged dose or PK data.
+  await page.click('#nav [data-tab="medications"]');
   await page.click("[data-med-edit]");
   await page.fill("#m_tmaxHours", "1");
   await page.fill("#m_doseMg", "200");
@@ -193,6 +202,7 @@ const fs = require("node:fs");
     logged,
   );
   assert.match(await page.textContent("#curveDescription"), /mg\/kg/);
+  await page.click('#nav [data-tab="stats"]');
   await page.selectOption("#curveMode", "single");
   assert.match(await page.textContent("#curveDescription"), /mg\/L/);
   // A memo-only edit keeps original snapshot despite changed preset.
@@ -227,6 +237,7 @@ const fs = require("node:fs");
   assert.equal(linked.data.tmaxHours, "1");
   assert.equal(linked.createdAt, "2026-11-01");
   await page.click('#nav [data-tab="medications"]');
+  await page.click('#nav [data-tab="stats"]');
   await page.selectOption("#curveMode", "records");
   assert.match(await page.textContent("#curveDescription"), /mg\/L/);
   // Repeat dosing and exclusions; other medicines never contribute.
@@ -262,6 +273,7 @@ const fs = require("node:fs");
     await page.click('#nav [data-tab="settings"]');
     await page.selectOption("#theme", theme);
     await page.click('#nav [data-tab="medications"]');
+    await page.click('#nav [data-tab="stats"]');
     await page.click('#curveForm [type="submit"]');
     await a11y();
     await page.locator("#curveResult details summary").click();
@@ -284,12 +296,14 @@ const fs = require("node:fs");
       assert(boxes.every((b) => b.w >= 44 && b.h >= 44));
     }
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.click('#nav [data-tab="medications"]');
     await page.click("[data-med-edit]");
     await a11y();
     await page.keyboard.press("Escape");
     assert(!(await page.locator("#medicationEditor").isVisible()));
   }
   // JSON preset backup and transactional rejection of malformed imports.
+  await page.click('#nav [data-tab="medications"]');
   await page.locator(".med-backup summary").click();
   const pending = page.waitForEvent("download");
   await page.click("#exportMedications");
@@ -371,6 +385,7 @@ const fs = require("node:fs");
   assert.deepEqual(await readRecords(), beforeRecords);
   // Storage write failure must not close editor or falsely report success.
   await page.route("**/*", (route) => route.continue());
+  await page.click('#nav [data-tab="medications"]');
   await page.click("[data-med-edit]");
   await page.fill("#m_name", "保存失敗のテスト");
   await page.evaluate(() => {
@@ -390,6 +405,7 @@ const fs = require("node:fs");
   await page.keyboard.press("Escape");
   assert.deepEqual(await readPresets(), beforePresets);
   // Deleting a preset leaves logs and chart conditions usable through history.
+  await page.click('#nav [data-tab="medications"]');
   await page.click("[data-med-edit]");
   await page.click("#deleteMedication");
   await page.waitForFunction(
@@ -398,7 +414,9 @@ const fs = require("node:fs");
   assert.equal((await readPresets()).length, 0);
   assert.deepEqual(await readRecords(), beforeRecords);
   assert.match(await page.textContent("#curveMedication"), /記録時の登録/);
+  await page.click('#nav [data-tab="stats"]');
   await page.selectOption("#curveMedication", preset.id);
+  await page.click('#nav [data-tab="stats"]');
   await page.selectOption("#curveMode", "records");
   assert(await page.locator("#curveResult").isVisible());
   // Restore and reload: both databases and original DB version remain intact.
@@ -417,6 +435,7 @@ const fs = require("node:fs");
   assert.equal((await readPresets()).length, 1);
   assert.deepEqual(await readRecords(), beforeRecords);
   assert.equal(await page.evaluate(() => db.version), 1);
+  await page.click('#nav [data-tab="stats"]');
   await page.click('#curveForm [type="submit"]');
   await page.evaluate(() =>
     document.querySelector("#toast").classList.remove("show"),
@@ -494,6 +513,7 @@ const fs = require("node:fs");
   await op.waitForFunction(() => document.querySelector("#curveStart").value);
   await op.click('#nav [data-tab="medications"]');
   await op.waitForSelector(".medicine-card");
+  await op.click('#nav [data-tab="stats"]');
   await op.fill("#curveWeight", "60");
   await op.selectOption("#curveMode", "single");
   await op.click('#curveForm [type="submit"]');

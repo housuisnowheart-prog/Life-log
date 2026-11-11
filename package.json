@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "node tests/pk.cjs && node tests/service-worker.cjs && node tests/browser.cjs && node tests/medications.cjs && node tests/decimal-dose.cjs",
+    "test": "node tests/pk.cjs && node tests/service-worker.cjs && node tests/browser.cjs && node tests/medications.cjs && node tests/decimal-dose.cjs && node tests/overlay.cjs",
     "check": "node --check app.js && node --check medications.js && node --check pk.js && node --check sw.js",
     "format": "prettier --write app.js medications.js pk.js index.html style.css sw.js tests/*.cjs"
   },

@@ -17,6 +17,7 @@ const assert = require("node:assert/strict");
         "life-log-v2",
         "life-log-v3",
         "life-log-v4",
+        "life-log-v5",
         "other-app-v1",
       ],
       delete: async (key) => deleted.push(key),
@@ -26,7 +27,12 @@ const assert = require("node:assert/strict");
   let activation;
   handlers.activate({ waitUntil: (value) => (activation = value) });
   await activation;
-  assert.deepEqual(deleted, ["life-log-v1", "life-log-v2", "life-log-v3"]);
+  assert.deepEqual(deleted, [
+    "life-log-v1",
+    "life-log-v2",
+    "life-log-v3",
+    "life-log-v4",
+  ]);
   for (const url of [
     "https://example.test/other-app/",
     "https://external.test/",
