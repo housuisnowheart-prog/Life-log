@@ -12,7 +12,8 @@ const MedicationUI = (() => {
     ready = false,
     libraryReady = false,
     savingPreset = false;
-  const overlayIds = new Set();
+  const overlayIds = new Set(),
+    axisAssignments = new Map();
   const q = (selector) => document.querySelector(selector);
   const escape = (value) =>
     String(value ?? "").replace(
@@ -198,7 +199,8 @@ const MedicationUI = (() => {
         "登録薬を保存できませんでした。入力内容は残っています。再度お試しください。";
     } finally {
       savingPreset = false;
-      const overlayIds = new Set();
+      const overlayIds = new Set(),
+        axisAssignments = new Map();
     }
   }
   function selectedRecordProfile() {
@@ -290,6 +292,7 @@ const MedicationUI = (() => {
     chartState = null;
     q("#curveWarnings").textContent = "";
     q("#curveResult").hidden = true;
+    q("#curveAxisAssignments").hidden = true;
     if (!p) {
       q("#curveError").textContent = "登録薬を選択すると推移を表示できます。";
       return;
@@ -299,7 +302,7 @@ const MedicationUI = (() => {
         "計算用の体重を0.1〜1000 kgで入力してください。";
       return;
     }
-    if (!Number.isFinite(start) || ![24, 72, 168].includes(hours)) {
+    if (!Number.isFinite(start) || !PK.RANGE_HOURS.includes(hours)) {
       q("#curveError").textContent =
         "表示開始日時と表示期間を確認してください。";
       return;
@@ -352,12 +355,9 @@ const MedicationUI = (() => {
         name: lines.map((line) => line.name).join("・"),
       };
       q("#curveError").textContent = "";
-      q("#curveAxisNote").textContent = absolute
-        ? "共通の縦軸：mg/Lのモデル濃度（実測値ではありません）。薬同士の値は合算しません。"
-        : "共通の縦軸：mg/kgのモデル内薬物量÷体重（血中濃度ではありません・全線でF＝1を仮定）。";
       q("#curveResult").hidden = false;
       q("#curveDescription").textContent =
-        `${chartState.name} / ${preview ? "登録量1回（服薬記録には保存されません）" : "記録時の条件による重ね合わせ"} / 体重 ${weight} kgを全期間で使用。${absolute ? "縦軸：モデル血中濃度（mg/L・実測ではありません）" : "縦軸：モデル内薬物量 ÷ 体重（mg/kg・血中濃度ではありません、全ての線でF＝1を仮定）"}。${lines.length > 1 ? "全ての線で日時と縦軸の目盛りを共有します。F・分布容積が不足する線がある場合は全てmg/kgに統一します。" : ""}`;
+        `${chartState.name} / ${preview ? "登録量1回（服薬記録には保存されません）" : "記録時の条件による重ね合わせ"} / 体重 ${weight} kgを全期間で使用。${absolute ? "縦軸：モデル血中濃度（mg/L・実測ではありません）" : "縦軸：モデル内薬物量 ÷ 体重（mg/kg・血中濃度ではありません、全ての線でF＝1を仮定）"}。${lines.length > 1 ? "全ての線で日時を共有し、縦軸は選択した表示方法を使います。F・分布容積が不足する線がある場合は全てmg/kgに統一します。" : ""}`;
       q("#curveSummary").textContent =
         lines
           .map((line) => {
@@ -375,12 +375,6 @@ const MedicationUI = (() => {
                 `${line.name}：${line.doses.length}回分の同じ登録薬の記録を使用（表示開始以前の記録も含む）。${line.omitted}`,
             )
             .join("\n") + "未連携の自由入力記録や未記録の服薬は含みません。";
-      q("#curveLegend").innerHTML = lines
-        .map(
-          (line, i) =>
-            `<li><svg viewBox="0 0 40 12" width="40" height="12" aria-hidden="true"><path d="M0 6H40" class="chart-line series-${i}" ${dash(i)}/></svg><span>${i + 1}. ${escape(line.name)}（${unit}）</span></li>`,
-        )
-        .join("");
       q("#curveCursor").value = "0";
       drawChart();
       inspect();
@@ -397,62 +391,48 @@ const MedicationUI = (() => {
         "この条件では計算できません。登録値を確認してください。";
     }
   }
-  function dash(i) {
-    return i
-      ? `stroke-dasharray="${["", "9 4", "3 4", "12 3 3 3", "2 3 2 3 9 3", "14 6"][i]}"`
-      : "";
+  function renderAxisChoices() {
+    const dual = q("#curveYAxis").value === "dual";
+    q("#curveAxisAssignments").hidden = !dual || !chartState;
+    if (!dual || !chartState) return;
+    const focused = document.activeElement?.dataset?.axisFor;
+    q("#curveAxisChoices").innerHTML = chartState.series
+      .map(
+        (line, i) =>
+          `<div class="field axis-choice"><label for="curveAxis-${i}">${i + 1}. ${escape(line.name)}</label><select id="curveAxis-${i}" data-axis-for="${escape(line.id)}"><option value="left" ${(axisAssignments.get(line.id) ?? (i === 0 ? "left" : "right")) === "left" ? "selected" : ""}>左軸</option><option value="right" ${(axisAssignments.get(line.id) ?? (i === 0 ? "left" : "right")) === "right" ? "selected" : ""}>右軸</option></select></div>`,
+      )
+      .join("");
+    if (focused)
+      [...q("#curveAxisChoices").querySelectorAll("select")]
+        .find((input) => input.dataset.axisFor === focused)
+        ?.focus({ preventScroll: true });
   }
   function drawChart() {
     if (!chartState) return;
-    const { series, start, end, unit } = chartState;
-    const width = Math.max(
-        240,
-        Math.round(q("#curveChart").clientWidth) || 340,
-      ),
-      height = 270,
-      left = 58,
-      right = 16,
-      top = 30,
-      bottom = 52;
-    const plotW = width - left - right,
-      plotH = height - top - bottom,
-      max =
-        series.reduce(
-          (max, line) =>
-            line.points.reduce((max, p) => Math.max(max, p.value), max),
-          0,
-        ) * 1.12 || 1;
-    const x = (t) => left + ((t - start) / (end - start)) * plotW,
-      y = (v) => top + (1 - v / max) * plotH;
-    const paths = series
+    const mode = q("#curveYAxis").value,
+      timeMode = q("#curveXAxis").value;
+    const rendered = ChartView.render(chartState.series, {
+      width: q("#curveChart").clientWidth,
+      start: chartState.start,
+      end: chartState.end,
+      unit: chartState.unit,
+      mode,
+      timeMode,
+      assignments: Object.fromEntries(axisAssignments),
+    });
+    q("#curveChart").innerHTML = rendered.html;
+    const description = chartState.absolute
+      ? "mg/Lのモデル濃度（実測値ではありません）"
+      : "mg/kgのモデル内薬物量÷体重（血中濃度ではありません・全線でF＝1を仮定）";
+    q("#curveAxisNote").textContent =
+      `${mode === "shared" ? "共通の縦軸" : mode === "dual" ? "左右別々の縦軸" : "薬ごとの独立縦軸"}：${description}。${mode === "shared" ? "薬同士の値は合算しません。" : "倍率が異なるため、線の高さは直接比較できません。凡例で各軸の上限を確認してください。"}${timeMode === "calendar" ? "" : " 横軸は服薬からではなく、表示開始からの経過時間です。"}`;
+    q("#curveLegend").innerHTML = chartState.series
       .map((line, i) => {
-        const path = line.points
-          .map(
-            (p, j) =>
-              `${j ? "L" : "M"}${x(p.time).toFixed(2)},${y(p.value).toFixed(2)}`,
-          )
-          .join(" ");
-        return `<path d="${path}" class="chart-line series-${i}" data-series="${escape(line.id)}" ${dash(i)}/>`;
+        const axis = rendered.axes.find((axis) => axis.id === line.id);
+        return `<li><svg viewBox="0 0 40 12" width="40" height="12" aria-hidden="true"><path d="M0 6H40" class="chart-line series-${i}" ${ChartView.dash(i)}/></svg><span>${i + 1}. ${escape(line.name)}（${chartState.unit}）<small>${axis.label}：0〜${valueLabel(axis.max)} ${chartState.unit}</small></span></li>`;
       })
       .join("");
-    let grid = "";
-    for (let i = 0; i <= 4; i++) {
-      const v = (max * i) / 4;
-      grid += `<line x1="${left}" y1="${y(v)}" x2="${width - right}" y2="${y(v)}" class="chart-grid"/><text x="${left - 7}" y="${y(v) + 4}" text-anchor="end">${escape(valueLabel(v))}</text>`;
-    }
-    for (let i = 0; i <= 3; i++) {
-      const t = start + ((end - start) * i) / 3,
-        d = new Date(t);
-      grid += `<text x="${x(t)}" y="${height - 29}" text-anchor="${i === 0 ? "start" : i === 3 ? "end" : "middle"}">${d.getMonth() + 1}/${d.getDate()}</text><text x="${x(t)}" y="${height - 12}" text-anchor="${i === 0 ? "start" : i === 3 ? "end" : "middle"}">${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</text>`;
-    }
-    const now = Date.now();
-    const nowMark =
-      now >= start && now <= end
-        ? `<line x1="${x(now)}" y1="${top}" x2="${x(now)}" y2="${height - bottom}" class="chart-now"/><text x="${x(now)}" y="18" text-anchor="middle">現在</text>`
-        : "";
-    q("#curveChart").innerHTML =
-      `<svg viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="curveSvgTitle curveSvgDesc"><title id="curveSvgTitle">${escape(chartState.name)}の参考推移（${unit}）</title><desc id="curveSvgDesc">${escape(q("#curveDescription").textContent)}。下の時刻スライダーと数値一覧でも確認できます。</desc><text x="0" y="18">${unit}</text>${grid}${nowMark}${paths}<line id="chartCursorLine" x1="${left}" x2="${left}" y1="${top}" y2="${height - bottom}" class="chart-cursor"/></svg>`;
-    chartState.plot = { left, plotW };
+    renderAxisChoices();
   }
   function inspect() {
     if (!chartState) return;
@@ -469,13 +449,16 @@ const MedicationUI = (() => {
         .join("\n");
     q("#curveReadout").textContent = label;
     q("#curveCursor").setAttribute("aria-valuetext", label);
-    const line = q("#chartCursorLine");
-    if (line) {
-      const x = chartState.plot.left + (chartState.plot.plotW * index) / 336;
-      line.setAttribute("x1", x);
-      line.setAttribute("x2", x);
+    for (const svg of q("#curveChart").querySelectorAll("svg[data-plot]")) {
+      const x =
+        Number(svg.dataset.plotLeft) +
+        (Number(svg.dataset.plotWidth) * index) / 336;
+      const cursor = svg.querySelector("[data-chart-cursor]");
+      cursor.setAttribute("x1", x);
+      cursor.setAttribute("x2", x);
     }
   }
+
   function refresh(newRecords) {
     records = newRecords;
     if (ready) {
@@ -591,7 +574,61 @@ const MedicationUI = (() => {
       q("#curveError").textContent =
         "開始日時を変更しました。「グラフを更新」で再計算してください。";
     };
+    q("#curveCenterNow").onclick = () => {
+      const hours = Number(q("#curveHours").value);
+      if (!PK.RANGE_HOURS.includes(hours)) return;
+      q("#curveStart").value = localDate(Date.now() - (hours * PK.HOUR) / 2);
+      updateCurve();
+    };
+    q("#curveLatestIntake").onclick = () => {
+      const ids = [q("#curveMedication").value, ...overlayIds];
+      const times = ids.flatMap((id) =>
+        PK.recordedDoses(records, id).doses.map((d) => d.at),
+      );
+      if (!times.length) {
+        q("#curveError").textContent =
+          "表示対象に計算できる服薬記録がありません。";
+        return;
+      }
+      const hours = Number(q("#curveHours").value);
+      if (!PK.RANGE_HOURS.includes(hours)) return;
+      q("#curveStart").value = localDate(
+        times.reduce((a, b) => Math.max(a, b)) - (hours * PK.HOUR) / 4,
+      );
+      updateCurve();
+    };
     q("#curveCursor").oninput = inspect;
+    for (const id of ["curveYAxis", "curveXAxis"])
+      q("#" + id).onchange = () => {
+        if (chartState) {
+          drawChart();
+          inspect();
+        } else renderAxisChoices();
+      };
+    q("#curveAxisChoices").onchange = (event) => {
+      const input = event.target.closest("select[data-axis-for]");
+      if (!input) return;
+      axisAssignments.set(input.dataset.axisFor, input.value);
+      if (chartState) {
+        drawChart();
+        inspect();
+      }
+    };
+    q("#curveChart").onclick = (event) => {
+      const svg = event.target.closest("svg[data-plot]");
+      if (!svg || !chartState) return;
+      const position =
+        ((event.clientX - svg.getBoundingClientRect().left) *
+          Number(svg.dataset.viewWidth)) /
+        svg.getBoundingClientRect().width;
+      const fraction =
+        (position - Number(svg.dataset.plotLeft)) /
+        Number(svg.dataset.plotWidth);
+      if (fraction < 0 || fraction > 1) return;
+      q("#curveCursor").value = String(Math.round(fraction * 336));
+      inspect();
+    };
+
     if (typeof ResizeObserver !== "undefined")
       new ResizeObserver(() => {
         if (chartState && !q("#curveResult").hidden) {

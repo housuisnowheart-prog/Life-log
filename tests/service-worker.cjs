@@ -18,6 +18,7 @@ const assert = require("node:assert/strict");
         "life-log-v3",
         "life-log-v4",
         "life-log-v5",
+        "life-log-v6",
         "other-app-v1",
       ],
       delete: async (key) => deleted.push(key),
@@ -32,6 +33,7 @@ const assert = require("node:assert/strict");
     "life-log-v2",
     "life-log-v3",
     "life-log-v4",
+    "life-log-v5",
   ]);
   for (const url of [
     "https://example.test/other-app/",
