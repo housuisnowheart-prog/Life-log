@@ -288,13 +288,17 @@
           ><input
             id="m_doseMg"
             name="doseMg"
-            type="number"
-            min="0.001"
-            max="100000"
-            step="any"
+            type="text"
             inputmode="decimal"
+            maxlength="32"
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="medicationDoseHint"
             required
           />
+          <p id="medicationDoseHint" class="hint">
+            小数も入力できます（例：0.25）。全角数字・全角小数点にも対応しています。
+          </p>
         </div>
         <div class="med-grid">
           <div class="field">

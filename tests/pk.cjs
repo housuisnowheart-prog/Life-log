@@ -124,3 +124,25 @@ assert.throws(() => pk.series(Array(5001).fill(d), 0, 24, 50));
 console.log(
   "PASS: analytic PK peak, dose/weight/F/Vd scaling, superposition, AUC, equal rates, extreme inputs, invalid parameters and record exclusions",
 );
+
+for (const [input, expected] of [
+  ["0.25", "0.25"],
+  [".5", "0.5"],
+  ["０．５", "0.5"],
+  [" １．２５ ", "1.25"],
+  ["1e-3", "0.001"],
+])
+  assert.equal(pk.normalizeDoseInput(input), expected);
+for (const input of [
+  "0,5",
+  "1,000",
+  "0.5mg",
+  "1.2.3",
+  "0",
+  "-1",
+  "",
+  "NaN",
+  "Infinity",
+  "0.0001",
+])
+  assert.throws(() => pk.normalizeDoseInput(input));

@@ -335,7 +335,13 @@ async function save(e) {
       ...editing?.data,
       ...Object.fromEntries(new FormData(e.target).entries()),
     };
-    if (kind === "med") d = MedicationUI.recordData(d);
+    if (kind === "med") {
+      try {
+        d = MedicationUI.recordData(d);
+      } catch (error) {
+        return formError(error.message);
+      }
+    }
     if (kind === "med") {
       if (d.certainty === "unknown") d.time = "";
       else if (!d.time)

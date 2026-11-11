@@ -11,6 +11,19 @@
       Number(value) <= max
     );
   }
+  function normalizeDoseInput(value) {
+    const normalized = String(value ?? "")
+      .normalize("NFKC")
+      .trim();
+    if (!/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(normalized)) {
+      throw Error(
+        "服用量は小数点「.」を使った数値で入力してください（例：0.25）。単位やカンマは入力しないでください。",
+      );
+    }
+    if (!number(normalized, 0.001, 100000))
+      throw Error("1回量を0.001〜100000 mgで入力してください。");
+    return String(Number(normalized));
+  }
   function validateProfile(p) {
     if (
       !p ||
@@ -169,6 +182,7 @@
     HOUR,
     number,
     validateProfile,
+    normalizeDoseInput,
     modelError,
     rates,
     fraction,
