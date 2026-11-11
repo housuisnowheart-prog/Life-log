@@ -90,7 +90,8 @@ const fields = {
 let db,
   items = [],
   editing = null,
-  kind = "";
+  kind = "",
+  savingRecord = false;
 function openDB() {
   return new Promise((ok, no) => {
     let r = indexedDB.open("life-log", 1);
@@ -103,9 +104,14 @@ function openDB() {
 function tx(mode, fn) {
   return new Promise((ok, no) => {
     let t = db.transaction("records", mode);
-    fn(t.objectStore("records"));
     t.oncomplete = ok;
-    t.onerror = () => no(t.error);
+    t.onerror = t.onabort = () => no(t.error || Error("Transaction aborted"));
+    try {
+      fn(t.objectStore("records"));
+    } catch (error) {
+      t.abort();
+      no(error);
+    }
   });
 }
 async function load() {
@@ -183,6 +189,7 @@ function editor(type, r = null) {
   editing = r;
   $("#formTitle").textContent = (r ? "編集：" : "記録：") + TYPES[type][0];
   $("#fields").innerHTML = fields[type].map((f) => field(f, r?.data)).join("");
+  MedicationUI.decorateEditor(type, r);
   $("#delete").hidden = !r;
   $("#formError").textContent = "";
   $("#editor").showModal();
@@ -271,6 +278,7 @@ function row(r) {
   );
 }
 function render() {
+  MedicationUI.refresh(items);
   let f = $("#filter").value;
   $("#recent").innerHTML =
     timeline(items.filter((r) => r.type !== "schedule").slice(0, 20)) ||
@@ -319,9 +327,15 @@ function toast(t) {
 }
 async function save(e) {
   e.preventDefault();
+  if (savingRecord) return;
+  savingRecord = true;
   $("#formError").textContent = "";
   try {
-    let d = Object.fromEntries(new FormData(e.target).entries());
+    let d = {
+      ...editing?.data,
+      ...Object.fromEntries(new FormData(e.target).entries()),
+    };
+    if (kind === "med") d = MedicationUI.recordData(d);
     if (kind === "med") {
       if (d.certainty === "unknown") d.time = "";
       else if (!d.time)
@@ -349,7 +363,7 @@ async function save(e) {
         id: editing?.id || crypto.randomUUID(),
         type: kind,
         time,
-        data: { ...editing?.data, ...d },
+        data: d,
         createdAt: editing?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -361,6 +375,8 @@ async function save(e) {
     formError(
       "保存できませんでした。入力内容を残しています。再度お試しください。",
     );
+  } finally {
+    savingRecord = false;
   }
 }
 function formError(message) {
@@ -518,6 +534,7 @@ async function init() {
       : "このブラウザは非対応です";
   };
   await load();
+  await MedicationUI.init({ getRecords: () => items, editor, notify: toast });
   if ("serviceWorker" in navigator && location.protocol !== "file:")
     navigator.serviceWorker.register("./sw.js").catch(() => {});
 }

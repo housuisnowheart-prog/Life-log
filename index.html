@@ -75,6 +75,145 @@
         </p>
         <div id="statistics" class="panel"></div>
       </section>
+
+      <section id="medications" class="page">
+        <div class="sectionhead med-heading">
+          <div>
+            <p class="eyebrow">MY MEDICINE NOTE</p>
+            <h2>お薬ノート</h2>
+          </div>
+          <button class="primary" id="addMedication">＋ 薬を登録</button>
+        </div>
+        <p class="muted">
+          いつもの薬を、記録しやすく。推移は参考モデルとして振り返れます。
+        </p>
+        <div id="medicationStorageError" role="alert"></div>
+        <div id="medicationList" class="medication-list"></div>
+        <details class="panel med-backup">
+          <summary>登録薬のバックアップ</summary>
+          <p>
+            生活記録のバックアップとは別のファイルです。移行時は両方を保存してください。
+          </p>
+          <button id="exportMedications">登録薬をJSONで保存</button>
+          <div class="field">
+            <label for="importMedications">登録薬JSONから復元</label
+            ><input
+              id="importMedications"
+              type="file"
+              accept="application/json,.json"
+            />
+          </div>
+          <p class="hint">
+            同じIDは上書きして統合します。過去の服薬記録・記録時の計算条件は変更しません。
+          </p>
+        </details>
+        <section class="panel model-panel" aria-labelledby="modelTitle">
+          <div class="sectionhead">
+            <div>
+              <p class="eyebrow">PHARMACOKINETIC MODEL</p>
+              <h3 id="modelTitle">お薬の推移をみる</h3>
+            </div>
+            <span class="model-badge">参考モデル</span>
+          </div>
+          <p class="model-caution">
+            実測値ではありません。効果・安全性や、服用量・服用間隔・運転・飲酒の可否を判断するためには使えません。
+          </p>
+          <form id="curveForm">
+            <div class="field">
+              <label for="curveMedication">登録薬</label
+              ><select id="curveMedication">
+                <option value="">薬を登録してください</option>
+              </select>
+            </div>
+            <div class="med-grid">
+              <div class="field">
+                <label for="curveMode">計算に使うもの</label
+                ><select id="curveMode">
+                  <option value="records">実際の服薬記録</option>
+                  <option value="single">
+                    登録量1回のモデル（記録しません）
+                  </option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="curveWeight">計算用の体重（kg）</label
+                ><input
+                  id="curveWeight"
+                  type="number"
+                  min="0.1"
+                  max="1000"
+                  step="any"
+                  required
+                  inputmode="decimal"
+                  aria-describedby="weightSource"
+                />
+                <p id="weightSource" class="hint"></p>
+              </div>
+            </div>
+            <details class="curve-range">
+              <summary>表示範囲を変更する</summary>
+              <div class="med-grid">
+                <div class="field">
+                  <label for="curveStart">表示開始日時</label
+                  ><input id="curveStart" type="datetime-local" required />
+                </div>
+                <div class="field">
+                  <label for="curveHours">表示期間</label
+                  ><select id="curveHours">
+                    <option value="24">24時間</option>
+                    <option value="72" selected>3日間（72時間）</option>
+                    <option value="168">7日間（168時間）</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+            <button class="primary" type="submit">グラフを更新</button>
+          </form>
+          <p id="curveError" role="alert"></p>
+          <div id="curveResult" hidden>
+            <p id="curveDescription" class="curve-description"></p>
+            <div id="curveChart" class="curve-chart"></div>
+            <p id="curveSummary" role="status"></p>
+            <div class="field curve-inspector">
+              <label for="curveCursor">グラフ上の時刻を確認</label
+              ><input
+                id="curveCursor"
+                type="range"
+                min="0"
+                max="336"
+                value="0"
+              /><output id="curveReadout" for="curveCursor"></output>
+            </div>
+            <p id="curveCoverage" class="hint"></p>
+            <details>
+              <summary>数値の一覧（3時間ごと）</summary>
+              <div
+                class="table-scroll"
+                tabindex="0"
+                role="region"
+                aria-label="推移の数値一覧"
+              >
+                <table id="curveTable"></table>
+              </div>
+            </details>
+          </div>
+          <details class="model-details">
+            <summary>計算の前提と、分かること・分からないこと</summary>
+            <p>
+              経口投与の1コンパートメント・一次吸収／一次消失モデルです。T-maxは服用から濃度が最大になるまでの時間、半減期は消失半減期を入力します。薬剤名・数値は添付文書などで確認してください。薬剤データの自動取得は行いません。
+            </p>
+            <p>
+              Fと分布容積が両方ある記録だけの場合、分布容積＝体重×L/kgとしてmg/Lのモデル濃度を計算します。それ以外はF＝1を仮定したモデル内薬物量を体重で割ったmg/kgを表示します。mg/kgは血中濃度ではありません。体重は表示範囲全体で一定とし、半減期は体重から補正しません。
+            </p>
+            <p>
+              同じ登録薬の服薬だけを重ね合わせます。記録時の数値を使い、未記録の服薬は推測しません。日時不明・未来・計算条件が不足した記録は除外し、推定日時の記録はその時刻として扱います。古い自由入力の記録は、編集画面で登録薬を選択すると連携できます。
+            </p>
+            <p>
+              食事、剤形の違い、徐放・遅延吸収、代謝物、相互作用、腎・肝機能、年齢、個人差は反映しません。異なる薬の値は合算・比較せず、有効域・危険域・次の服薬時刻の判定も行いません。
+            </p>
+          </details>
+        </section>
+      </section>
       <section id="settings" class="page">
         <h2>設定とバックアップ</h2>
         <div class="panel">
@@ -91,7 +230,7 @@
         <div class="panel">
           <h3>データを守る</h3>
           <p>
-            データはこのブラウザ内に保存されます。ブラウザデータの削除や端末故障で失われる場合があります。
+            登録薬は「お薬」画面で別途バックアップできます。データはこのブラウザ内に保存されます。ブラウザデータの削除や端末故障で失われる場合があります。
           </p>
           <button id="export" class="primary">JSONバックアップを保存</button
           ><label class="filelabel" for="import">JSONバックアップから復元</label
@@ -117,10 +256,121 @@
       <button data-tab="home" class="selected" aria-current="page">
         <span>⌂</span>ホーム</button
       ><button data-tab="history"><span>▤</span>履歴</button
+      ><button data-tab="medications">
+        <span aria-hidden="true">💊</span>お薬</button
       ><button data-tab="schedule"><span>▦</span>予定</button
       ><button data-tab="stats"><span>▥</span>分析</button
       ><button data-tab="settings"><span>⚙</span>設定</button>
     </nav>
+    <dialog id="medicationEditor" aria-labelledby="medicationTitle">
+      <form id="medicationForm">
+        <div class="dialoghead">
+          <h2 id="medicationTitle">薬を登録</h2>
+          <button type="button" id="closeMedication" aria-label="閉じる">
+            ×
+          </button>
+        </div>
+        <p class="muted">
+          薬・剤形が異なる場合は別々に登録してください。登録だけでは服薬記録は作成されません。mgは製剤の総重量ではなく、有効成分の1回量です。
+        </p>
+        <div class="field">
+          <label for="m_name">薬の名前・剤形（必須）</label
+          ><input
+            id="m_name"
+            name="name"
+            type="text"
+            maxlength="120"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="m_doseMg">通常の1回量（mg・必須）</label
+          ><input
+            id="m_doseMg"
+            name="doseMg"
+            type="number"
+            min="0.001"
+            max="100000"
+            step="any"
+            inputmode="decimal"
+            required
+          />
+        </div>
+        <div class="med-grid">
+          <div class="field">
+            <label for="m_tmaxHours">T-max（時間・必須）</label
+            ><input
+              id="m_tmaxHours"
+              name="tmaxHours"
+              type="number"
+              min="0.001"
+              max="10000"
+              step="any"
+              inputmode="decimal"
+              required
+            />
+          </div>
+          <div class="field">
+            <label for="m_halfLifeHours">消失半減期（時間・必須）</label
+            ><input
+              id="m_halfLifeHours"
+              name="halfLifeHours"
+              type="number"
+              min="0.001"
+              max="10000"
+              step="any"
+              inputmode="decimal"
+              required
+            />
+          </div>
+        </div>
+        <p class="hint">
+          30分は0.5時間です。T-maxが消失半減期÷ln(2)を超える条件は、このモデルでは扱えません。
+        </p>
+        <details id="concentrationFields">
+          <summary>濃度モデル用の値（分かる場合のみ）</summary>
+          <p class="hint">
+            空欄ではmg/kgの参考推移を表示します。mg/Lのモデル濃度には、同じ剤形・投与経路のFと分布容積が両方必要です。
+          </p>
+          <div class="field">
+            <label for="m_bioavailability"
+              >バイオアベイラビリティ F（0超〜1・任意）</label
+            ><input
+              id="m_bioavailability"
+              name="bioavailability"
+              type="number"
+              min="0.0001"
+              max="1"
+              step="any"
+              inputmode="decimal"
+            />
+            <p class="hint">80%の場合は0.8と入力します。</p>
+          </div>
+          <div class="field">
+            <label for="m_vdLKg">見かけの分布容積（L/kg・任意）</label
+            ><input
+              id="m_vdLKg"
+              name="vdLKg"
+              type="number"
+              min="0.001"
+              max="10000"
+              step="any"
+              inputmode="decimal"
+            />
+          </div>
+        </details>
+        <div class="field">
+          <label for="m_source">数値の出典・メモ（任意）</label
+          ><textarea id="m_source" name="source" maxlength="1000"></textarea>
+        </div>
+        <p id="medicationError" role="alert"></p>
+        <div class="actions">
+          <button type="button" id="deleteMedication" class="danger" hidden>
+            登録を削除</button
+          ><button type="submit" class="primary">保存する</button>
+        </div>
+      </form>
+    </dialog>
     <dialog id="editor" aria-labelledby="formTitle">
       <form id="recordForm">
         <div class="dialoghead">
@@ -136,6 +386,8 @@
       </form>
     </dialog>
     <div id="toast" role="status" aria-live="polite"></div>
+    <script src="pk.js" defer></script>
+    <script src="medications.js" defer></script>
     <script src="app.js" defer></script>
   </body>
 </html>

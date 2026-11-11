@@ -2,7 +2,7 @@ name: Browser regression
 on:
   pull_request:
   push:
-    branches: [main, feat/diary-timeline-theme]
+    branches: [main, "feat/**"]
 permissions:
   contents: read
 jobs:

@@ -533,3 +533,333 @@ body[data-theme="diary"] {
     scroll-behavior: auto !important;
   }
 }
+/* Medicine notebook: shared layout, with both existing themes supported. */
+.med-heading {
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.med-heading .eyebrow {
+  color: #315c46;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.med-heading h2 {
+  margin-bottom: 0;
+}
+.medication-list {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+.medicine-card {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #bdc7c0;
+  border-radius: 16px;
+  min-width: 0;
+}
+.medicine-card-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.medicine-card h3 {
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  margin: 0;
+}
+.medicine-symbol {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  background: #eaf2fa;
+  border-radius: 14px;
+  font-size: 1.3rem;
+}
+.medicine-dose {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 6px 0 0;
+}
+.medicine-dose span {
+  font-size: 0.8rem;
+  color: #535e6a;
+  font-weight: 400;
+}
+.medicine-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 18px 0;
+  border-block: 1px solid #dce1e6;
+  padding: 14px 0;
+}
+.medicine-facts dt {
+  font-size: 0.8rem;
+  color: #535e6a;
+}
+.medicine-facts dd {
+  font-weight: 700;
+  margin: 6px 0 0;
+}
+.medicine-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.medicine-actions button {
+  flex: 1;
+  white-space: nowrap;
+}
+.medicine-actions .primary {
+  flex: 2;
+}
+.medicine-source {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.medicine-empty {
+  text-align: center;
+  padding: 28px 20px;
+  background: #fff;
+  border: 1px dashed #879789;
+  border-radius: 16px;
+}
+.medicine-empty > span {
+  display: block;
+  font-size: 2rem;
+  color: #315c46;
+  margin-bottom: 12px;
+}
+.medicine-empty p {
+  color: #535e6a;
+}
+.med-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.med-grid > * {
+  min-width: 0;
+}
+.model-panel .eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: #535e6a;
+  margin: 0 0 8px;
+}
+.model-panel .sectionhead {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.model-panel h3 {
+  margin-bottom: 0;
+}
+.model-badge {
+  color: #315c46;
+  border: 1px solid #879789;
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.model-caution {
+  padding: 14px;
+  background: #fff8e5;
+  border-left: 4px solid #957000;
+  color: #4f3a00;
+  font-size: 0.875rem;
+}
+.curve-description {
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+.curve-chart {
+  width: 100%;
+  margin: 16px 0;
+  background: #f6f8f6;
+  border: 1px solid #dce1e6;
+  border-radius: 12px;
+  padding: 8px;
+}
+.curve-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.curve-chart text {
+  fill: #46534b;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+}
+.chart-grid {
+  stroke: #c8d2cb;
+  stroke-width: 1;
+}
+.chart-line {
+  fill: none;
+  stroke: #005bac;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+.chart-area {
+  fill: #005bac;
+  fill-opacity: 0.1;
+}
+.chart-now {
+  stroke: #606972;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+.chart-cursor {
+  stroke: #8a4017;
+  stroke-width: 1.5;
+  stroke-dasharray: 2 3;
+}
+.curve-inspector input {
+  accent-color: #005bac;
+  cursor: pointer;
+}
+.curve-inspector output {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin-top: 8px;
+}
+#curveSummary {
+  font-size: 0.875rem;
+}
+#curveError,
+#medicationError,
+#medicationStorageError {
+  color: #a52222;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+#medicationEditor {
+  padding-bottom: calc(22px + env(safe-area-inset-bottom));
+}
+#closeMedication {
+  min-width: 44px;
+}
+input[readonly] {
+  background: #f0f3f0;
+}
+.model-details {
+  margin-top: 20px;
+  border-top: 1px solid #dce1e6;
+  padding-top: 8px;
+}
+.model-details p {
+  font-size: 0.875rem;
+}
+.table-scroll {
+  max-width: 100%;
+  overflow: auto;
+  max-height: 400px;
+}
+.table-scroll:focus-visible {
+  outline: 3px solid #005bac;
+  outline-offset: 2px;
+}
+.table-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.table-scroll caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 12px 0;
+}
+.table-scroll th,
+.table-scroll td {
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #c8d2cb;
+  padding: 12px 8px;
+  font-variant-numeric: tabular-nums;
+}
+.table-scroll th {
+  font-weight: 600;
+}
+#curveResult details {
+  margin-top: 16px;
+}
+#curveWeight,
+#curveStart {
+  min-width: 0;
+  max-width: 100%;
+}
+.med-backup input {
+  max-width: 100%;
+}
+.med-backup summary {
+  font-size: 0.875rem;
+}
+[data-theme="diary"] .medicine-card,
+[data-theme="diary"] .medicine-empty {
+  background: #fffdf8;
+  border-color: #bbc9b7;
+  border-radius: 20px;
+}
+[data-theme="diary"] .medicine-symbol {
+  background: #e3eadf;
+}
+[data-theme="diary"] .chart-line {
+  stroke: #315c46;
+}
+[data-theme="diary"] .chart-area {
+  fill: #315c46;
+}
+[data-theme="diary"] .curve-inspector input {
+  accent-color: #315c46;
+}
+@media (min-width: 650px) {
+  .medication-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 400px) {
+  .med-grid {
+    grid-template-columns: 1fr;
+  }
+  .medicine-card {
+    padding: 16px;
+  }
+  .medicine-actions button {
+    padding-inline: 8px;
+  }
+  .model-panel {
+    padding: 14px;
+  }
+  .curve-chart {
+    padding: 2px;
+  }
+  .model-panel .eyebrow {
+    font-size: 0.65rem;
+  }
+}
+@media (min-width: 361px) and (max-width: 400px) {
+  .med-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.curve-range {
+  margin: 0 0 16px;
+}
+.curve-range summary {
+  font-size: 0.875rem;
+}
+.model-warning {
+  padding: 8px;
+  background: #fff8e5;
+  color: #4f3a00;
+  border-radius: 6px;
+}

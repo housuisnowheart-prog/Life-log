@@ -53,6 +53,7 @@ const assert = require("node:assert/strict");
           r.onerror = () => reject(r.error);
         }),
     );
+  await page.clock.install({ time: new Date("2026-11-05T12:00:00Z") });
   await page.goto("http://127.0.0.1:8000");
   await page.waitForSelector("#quick button", { state: "attached" });
   const fixtures = [
@@ -95,7 +96,14 @@ const assert = require("node:assert/strict");
     await page.waitForSelector("#quick button", { state: "attached" });
     assert.equal(await page.getAttribute("body", "data-theme"), theme);
     assert.deepEqual(await read(), fixtures);
-    for (const tab of ["home", "history", "schedule", "stats", "settings"]) {
+    for (const tab of [
+      "home",
+      "history",
+      "medications",
+      "schedule",
+      "stats",
+      "settings",
+    ]) {
       await page.click('#nav [data-tab="' + tab + '"]');
       await a11y();
     }
