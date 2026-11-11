@@ -1,11 +1,12 @@
 "use strict";
-const CACHE = "life-log-v5";
+const CACHE = "life-log-v6";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
   "./pk.js",
+  "./chart.js",
   "./medications.js",
   "./manifest.webmanifest",
   "./icon.svg",

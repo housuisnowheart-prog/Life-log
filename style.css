@@ -946,3 +946,76 @@ input[readonly] {
   max-width: 240px;
   overflow-wrap: anywhere;
 }
+.chart-panel + .chart-panel {
+  border-top: 1px solid #bbc9b7;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+.chart-panel-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  margin: 0 0 8px;
+}
+.chart-panel-title span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #46534b;
+}
+.chart-axis-title {
+  font-weight: 700;
+}
+.curve-legend small {
+  display: block;
+  color: #46534b;
+  font-size: 0.75rem;
+  margin-top: 3px;
+}
+.curve-axis-assignments {
+  min-width: 0;
+  border: 1px solid #879789;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 12px 0;
+}
+.curve-axis-assignments legend {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.axis-choice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 85px;
+  align-items: center;
+  gap: 12px;
+}
+.axis-choice label {
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.chart-display-controls {
+  border-top: 1px solid #cbd1d8;
+  margin-top: 16px;
+  padding-top: 8px;
+}
+.curve-chart svg[data-plot] {
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.chart-range-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+.chart-range-actions button {
+  flex: 1;
+  min-width: 130px;
+  font-size: 0.875rem;
+}
+@media (max-width: 480px) {
+  .curve-range .med-grid {
+    grid-template-columns: 1fr;
+  }
+}

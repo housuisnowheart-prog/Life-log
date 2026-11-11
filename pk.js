@@ -2,6 +2,7 @@
 (function (root) {
   "use strict";
   const HOUR = 3600000;
+  const RANGE_HOURS = Object.freeze([6, 12, 24, 48, 72, 168]);
   function number(value, min, max) {
     if (value === "" || !["string", "number"].includes(typeof value))
       return false;
@@ -155,7 +156,7 @@
     return { doses, skipped };
   }
   function series(doses, start, hours, weightKg, absoluteOverride = null) {
-    if (![24, 72, 168].includes(hours) || !Number.isFinite(start))
+    if (!RANGE_HOURS.includes(hours) || !Number.isFinite(start))
       throw Error("Invalid range");
     if (doses.length > 5000) throw Error("Too many doses");
     const end = start + hours * HOUR;
@@ -200,6 +201,7 @@
   }
   const API = {
     HOUR,
+    RANGE_HOURS,
     number,
     validateProfile,
     normalizeDoseInput,

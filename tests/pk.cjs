@@ -180,3 +180,6 @@ close(
 );
 assert.throws(() => pk.groupSeries([], 0, 24, 50));
 assert.throws(() => pk.groupSeries(Array(7).fill({ doses: [d] }), 0, 24, 50));
+
+for (const hours of pk.RANGE_HOURS)
+  assert.equal(pk.series([d], 0, hours, 50).end, hours * pk.HOUR);
